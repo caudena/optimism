@@ -15,7 +15,7 @@ type Supervisor interface {
 	UserRPC() string
 }
 
-func WithSupervisor(supervisorID stack.SupervisorID, clusterID stack.ClusterID, l1ELID stack.L1ELNodeID) stack.Option[*Orchestrator] {
+func WithSupervisor(supervisorID stack.ComponentID, clusterID stack.ComponentID, l1ELID stack.ComponentID) stack.Option[*Orchestrator] {
 	switch os.Getenv("DEVSTACK_SUPERVISOR_KIND") {
 	case "kona":
 		return WithKonaSupervisor(supervisorID, clusterID, l1ELID)
@@ -24,16 +24,16 @@ func WithSupervisor(supervisorID stack.SupervisorID, clusterID stack.ClusterID, 
 	}
 }
 
-func WithManagedBySupervisor(l2CLID stack.L2CLNodeID, supervisorID stack.SupervisorID) stack.Option[*Orchestrator] {
+func WithManagedBySupervisor(l2CLID stack.ComponentID, supervisorID stack.ComponentID) stack.Option[*Orchestrator] {
 	return stack.AfterDeploy(func(orch *Orchestrator) {
 		require := orch.P().Require()
 
-		l2CLComponent, ok := orch.registry.Get(stack.ConvertL2CLNodeID(l2CLID).ComponentID)
+		l2CLComponent, ok := orch.registry.Get(l2CLID)
 		require.True(ok, "looking for L2 CL node to connect to supervisor")
 		l2CL := l2CLComponent.(L2CLNode)
 		interopEndpoint, secret := l2CL.InteropRPC()
 
-		supComponent, ok := orch.registry.Get(stack.ConvertSupervisorID(supervisorID).ComponentID)
+		supComponent, ok := orch.registry.Get(supervisorID)
 		require.True(ok, "looking for supervisor")
 		s := supComponent.(Supervisor)
 

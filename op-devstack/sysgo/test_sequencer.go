@@ -39,7 +39,7 @@ import (
 )
 
 type TestSequencer struct {
-	id         stack.TestSequencerID
+	id         stack.ComponentID
 	userRPC    string
 	jwtSecret  [32]byte
 	sequencers map[eth.ChainID]seqtypes.SequencerID
@@ -74,7 +74,7 @@ func (s *TestSequencer) hydrate(sys stack.ExtensibleSystem) {
 	}))
 }
 
-func WithTestSequencer(testSequencerID stack.TestSequencerID, l1CLID stack.L1CLNodeID, l2CLID stack.L2CLNodeID, l1ELID stack.L1ELNodeID, l2ELID stack.L2ELNodeID) stack.Option[*Orchestrator] {
+func WithTestSequencer(testSequencerID stack.ComponentID, l1CLID stack.ComponentID, l2CLID stack.ComponentID, l1ELID stack.ComponentID, l2ELID stack.ComponentID) stack.Option[*Orchestrator] {
 	return stack.AfterDeploy(func(orch *Orchestrator) {
 		p := orch.P().WithCtx(stack.ContextWithID(orch.P().Ctx(), testSequencerID))
 		require := p.Require()
@@ -82,7 +82,7 @@ func WithTestSequencer(testSequencerID stack.TestSequencerID, l1CLID stack.L1CLN
 		logger := p.Logger()
 
 		orch.writeDefaultJWT()
-		l1ELComponent, ok := orch.registry.Get(stack.ConvertL1ELNodeID(l1ELID).ComponentID)
+		l1ELComponent, ok := orch.registry.Get(l1ELID)
 		require.True(ok, "l1 EL node required")
 		l1EL := l1ELComponent.(L1ELNode)
 		l1ELClient, err := ethclient.DialContext(p.Ctx(), l1EL.UserRPC())
@@ -90,14 +90,14 @@ func WithTestSequencer(testSequencerID stack.TestSequencerID, l1CLID stack.L1CLN
 		engineCl, err := dialEngine(p.Ctx(), l1EL.AuthRPC(), orch.jwtSecret)
 		require.NoError(err)
 
-		l1CLComponent, ok := orch.registry.Get(stack.ConvertL1CLNodeID(l1CLID).ComponentID)
+		l1CLComponent, ok := orch.registry.Get(l1CLID)
 		require.True(ok, "l1 CL node required")
 		l1CL := l1CLComponent.(*L1CLNode)
 
 		l2EL, ok := orch.GetL2EL(l2ELID)
 		require.True(ok, "l2 EL node required")
 
-		l2CLComponent, ok := orch.registry.Get(stack.ConvertL2CLNodeID(l2CLID).ComponentID)
+		l2CLComponent, ok := orch.registry.Get(l2CLID)
 		require.True(ok, "l2 CL node required")
 		l2CL := l2CLComponent.(L2CLNode)
 
@@ -118,7 +118,7 @@ func WithTestSequencer(testSequencerID stack.TestSequencerID, l1CLID stack.L1CLN
 		l2SequencerID := seqtypes.SequencerID(fmt.Sprintf("test-seq-%s", l2CLID.ChainID()))
 		l1SequencerID := seqtypes.SequencerID(fmt.Sprintf("test-seq-%s", l1ELID.ChainID()))
 
-		l1NetComponent, ok := orch.registry.Get(stack.ConvertL1NetworkID(stack.L1NetworkID(l1ELID.ChainID())).ComponentID)
+		l1NetComponent, ok := orch.registry.Get(stack.NewL1NetworkID(l1ELID.ChainID()))
 		require.True(ok, "l1 net required")
 		l1Net := l1NetComponent.(*L1Network)
 
@@ -272,6 +272,6 @@ func WithTestSequencer(testSequencerID stack.TestSequencerID, l1CLID stack.L1CLN
 			},
 		}
 		logger.Info("Sequencer User RPC", "http_endpoint", testSequencerNode.userRPC)
-		orch.registry.Register(stack.ConvertTestSequencerID(testSequencerID).ComponentID, testSequencerNode)
+		orch.registry.Register(testSequencerID, testSequencerNode)
 	})
 }

@@ -85,17 +85,18 @@ func (o *Orchestrator) EnableTimeTravel() {
 	}
 }
 
-// GetL2EL retrieves an L2 EL node by its ID from the registry.
-// Supports polymorphic lookup: if the ID was converted from another L2EL-capable type
-// (e.g., OPRBuilderNodeID), searches across all L2EL-capable kinds using same key/chainID.
-func (o *Orchestrator) GetL2EL(id stack.L2ELNodeID) (L2ELNode, bool) {
-	for _, kind := range stack.L2ELCapableKinds() {
-		cid := stack.NewComponentID(kind, id.Key(), id.ChainID())
-		if component, ok := o.registry.Get(cid); ok {
-			if el, ok := component.(L2ELNode); ok {
-				return el, true
-			}
-		}
+// GetL2EL attempts to find an L2 EL node by checking all L2 EL-capable component types.
+// It returns the L2ELNode interface if found, regardless of whether the underlying
+// component is an L2ELNode, RollupBoostNode, or OPRBuilderNode.
+//
+// This uses the L2ELCapable capability interface for polymorphic lookup.
+func (o *Orchestrator) GetL2EL(id stack.ComponentID) (L2ELNode, bool) {
+	component, ok := o.registry.Get(id)
+	if !ok {
+		return nil, false
+	}
+	if el, ok := component.(L2ELNode); ok {
+		return el, true
 	}
 	return nil, false
 }
@@ -175,7 +176,7 @@ func (o *Orchestrator) Hydrate(sys stack.ExtensibleSystem) {
 	o.sysHook.PostHydrate(sys)
 }
 
-func (o *Orchestrator) RegisterL2MetricsTargets(id stack.IDWithChain, endpoints ...PrometheusMetricsTarget) {
+func (o *Orchestrator) RegisterL2MetricsTargets(id stack.Keyed, endpoints ...PrometheusMetricsTarget) {
 	o.l2MetricsMu.Lock()
 	defer o.l2MetricsMu.Unlock()
 

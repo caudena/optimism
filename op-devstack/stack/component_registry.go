@@ -65,99 +65,99 @@ func GetComponentsByKind[T any](r ComponentRegistry, kind ComponentKind) []T {
 // --- Typed getter free functions for L2Network components ---
 
 // GetL2BatcherByID returns an L2Batcher from a network by ID.
-func GetL2BatcherByID(n L2Network, id L2BatcherID) (L2Batcher, bool) {
-	return GetComponent[L2Batcher](n, ConvertL2BatcherID(id).ComponentID)
+func GetL2BatcherByID(n L2Network, id ComponentID) (L2Batcher, bool) {
+	return GetComponent[L2Batcher](n, id)
 }
 
 // GetL2ProposerByID returns an L2Proposer from a network by ID.
-func GetL2ProposerByID(n L2Network, id L2ProposerID) (L2Proposer, bool) {
-	return GetComponent[L2Proposer](n, ConvertL2ProposerID(id).ComponentID)
+func GetL2ProposerByID(n L2Network, id ComponentID) (L2Proposer, bool) {
+	return GetComponent[L2Proposer](n, id)
 }
 
 // GetL2ChallengerByID returns an L2Challenger from a network by ID.
-func GetL2ChallengerByID(n L2Network, id L2ChallengerID) (L2Challenger, bool) {
-	return GetComponent[L2Challenger](n, ConvertL2ChallengerID(id).ComponentID)
+func GetL2ChallengerByID(n L2Network, id ComponentID) (L2Challenger, bool) {
+	return GetComponent[L2Challenger](n, id)
 }
 
 // GetL2CLNodeByID returns an L2CLNode from a network by ID.
-func GetL2CLNodeByID(n L2Network, id L2CLNodeID) (L2CLNode, bool) {
-	return GetComponent[L2CLNode](n, ConvertL2CLNodeID(id).ComponentID)
+func GetL2CLNodeByID(n L2Network, id ComponentID) (L2CLNode, bool) {
+	return GetComponent[L2CLNode](n, id)
 }
 
 // GetL2ELNodeByID returns an L2ELNode from a network by ID.
-func GetL2ELNodeByID(n L2Network, id L2ELNodeID) (L2ELNode, bool) {
-	return GetComponent[L2ELNode](n, ConvertL2ELNodeID(id).ComponentID)
+func GetL2ELNodeByID(n L2Network, id ComponentID) (L2ELNode, bool) {
+	return GetComponent[L2ELNode](n, id)
 }
 
 // GetConductorByID returns a Conductor from a network by ID.
-func GetConductorByID(n L2Network, id ConductorID) (Conductor, bool) {
-	return GetComponent[Conductor](n, ConvertConductorID(id).ComponentID)
+func GetConductorByID(n L2Network, id ComponentID) (Conductor, bool) {
+	return GetComponent[Conductor](n, id)
 }
 
 // GetRollupBoostNodeByID returns a RollupBoostNode from a network by ID.
-func GetRollupBoostNodeByID(n L2Network, id RollupBoostNodeID) (RollupBoostNode, bool) {
-	return GetComponent[RollupBoostNode](n, ConvertRollupBoostNodeID(id).ComponentID)
+func GetRollupBoostNodeByID(n L2Network, id ComponentID) (RollupBoostNode, bool) {
+	return GetComponent[RollupBoostNode](n, id)
 }
 
 // GetOPRBuilderNodeByID returns an OPRBuilderNode from a network by ID.
-func GetOPRBuilderNodeByID(n L2Network, id OPRBuilderNodeID) (OPRBuilderNode, bool) {
-	return GetComponent[OPRBuilderNode](n, ConvertOPRBuilderNodeID(id).ComponentID)
+func GetOPRBuilderNodeByID(n L2Network, id ComponentID) (OPRBuilderNode, bool) {
+	return GetComponent[OPRBuilderNode](n, id)
 }
 
 // --- Typed getter free functions for L1Network components ---
 
 // GetL1ELNodeByID returns an L1ELNode from a network by ID.
-func GetL1ELNodeByID(n L1Network, id L1ELNodeID) (L1ELNode, bool) {
-	return GetComponent[L1ELNode](n, ConvertL1ELNodeID(id).ComponentID)
+func GetL1ELNodeByID(n L1Network, id ComponentID) (L1ELNode, bool) {
+	return GetComponent[L1ELNode](n, id)
 }
 
 // GetL1CLNodeByID returns an L1CLNode from a network by ID.
-func GetL1CLNodeByID(n L1Network, id L1CLNodeID) (L1CLNode, bool) {
-	return GetComponent[L1CLNode](n, ConvertL1CLNodeID(id).ComponentID)
+func GetL1CLNodeByID(n L1Network, id ComponentID) (L1CLNode, bool) {
+	return GetComponent[L1CLNode](n, id)
 }
 
 // --- Typed getter free functions for Network components (shared by L1 and L2) ---
 
 // GetFaucetByID returns a Faucet from a network by ID.
-func GetFaucetByID(n Network, id FaucetID) (Faucet, bool) {
-	return GetComponent[Faucet](n, ConvertFaucetID(id).ComponentID)
+func GetFaucetByID(n Network, id ComponentID) (Faucet, bool) {
+	return GetComponent[Faucet](n, id)
 }
 
 // GetSyncTesterByID returns a SyncTester from a network by ID.
-func GetSyncTesterByID(n Network, id SyncTesterID) (SyncTester, bool) {
-	return GetComponent[SyncTester](n, ConvertSyncTesterID(id).ComponentID)
+func GetSyncTesterByID(n Network, id ComponentID) (SyncTester, bool) {
+	return GetComponent[SyncTester](n, id)
 }
 
 // --- Typed getter free functions for System components ---
 
 // GetSuperchainByID returns a Superchain from a system by ID.
-func GetSuperchainByID(s System, id SuperchainID) (Superchain, bool) {
-	return GetComponent[Superchain](s, ConvertSuperchainID(id).ComponentID)
+func GetSuperchainByID(s System, id ComponentID) (Superchain, bool) {
+	return GetComponent[Superchain](s, id)
 }
 
 // GetClusterByID returns a Cluster from a system by ID.
-func GetClusterByID(s System, id ClusterID) (Cluster, bool) {
-	return GetComponent[Cluster](s, ConvertClusterID(id).ComponentID)
+func GetClusterByID(s System, id ComponentID) (Cluster, bool) {
+	return GetComponent[Cluster](s, id)
 }
 
 // GetL1NetworkByID returns an L1Network from a system by ID.
-func GetL1NetworkByID(s System, id L1NetworkID) (L1Network, bool) {
-	return GetComponent[L1Network](s, ConvertL1NetworkID(id).ComponentID)
+func GetL1NetworkByID(s System, id ComponentID) (L1Network, bool) {
+	return GetComponent[L1Network](s, id)
 }
 
 // GetL2NetworkByID returns an L2Network from a system by ID.
-func GetL2NetworkByID(s System, id L2NetworkID) (L2Network, bool) {
-	return GetComponent[L2Network](s, ConvertL2NetworkID(id).ComponentID)
+func GetL2NetworkByID(s System, id ComponentID) (L2Network, bool) {
+	return GetComponent[L2Network](s, id)
 }
 
 // GetSupervisorByID returns a Supervisor from a system by ID.
-func GetSupervisorByID(s System, id SupervisorID) (Supervisor, bool) {
-	return GetComponent[Supervisor](s, ConvertSupervisorID(id).ComponentID)
+func GetSupervisorByID(s System, id ComponentID) (Supervisor, bool) {
+	return GetComponent[Supervisor](s, id)
 }
 
 // GetTestSequencerByID returns a TestSequencer from a system by ID.
-func GetTestSequencerByID(s System, id TestSequencerID) (TestSequencer, bool) {
-	return GetComponent[TestSequencer](s, ConvertTestSequencerID(id).ComponentID)
+func GetTestSequencerByID(s System, id ComponentID) (TestSequencer, bool) {
+	return GetComponent[TestSequencer](s, id)
 }
 
 // --- List getter free functions ---

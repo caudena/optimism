@@ -59,7 +59,7 @@ func WithRespectedGameType(gameType gameTypes.GameType) stack.Option[*Orchestrat
 	}
 }
 
-func WithCannonGameTypeAdded(l1ELID stack.L1ELNodeID, l2ChainID eth.ChainID) stack.Option[*Orchestrator] {
+func WithCannonGameTypeAdded(l1ELID stack.ComponentID, l2ChainID eth.ChainID) stack.Option[*Orchestrator] {
 	return stack.FnOption[*Orchestrator]{
 		FinallyFn: func(o *Orchestrator) {
 			// TODO(#17867): Rebuild the op-program prestate using the newly minted L2 chain configs before using it.
@@ -93,18 +93,18 @@ func WithChallengerCannonKonaEnabled() stack.Option[*Orchestrator] {
 	}
 }
 
-func setRespectedGameType(o *Orchestrator, gameType gameTypes.GameType, l1ELID stack.L1ELNodeID, l2ChainID eth.ChainID) {
+func setRespectedGameType(o *Orchestrator, gameType gameTypes.GameType, l1ELID stack.ComponentID, l2ChainID eth.ChainID) {
 	t := o.P()
 	require := t.Require()
 	require.NotNil(o.wb, "must have a world builder")
 	l1ChainID := l1ELID.ChainID()
 
-	l2NetComponent, ok := o.registry.Get(stack.ConvertL2NetworkID(stack.L2NetworkID(l2ChainID)).ComponentID)
+	l2NetComponent, ok := o.registry.Get(stack.NewL2NetworkID(l2ChainID))
 	require.True(ok, "l2Net must exist")
 	l2Network := l2NetComponent.(*L2Network)
 	portalAddr := l2Network.rollupCfg.DepositContractAddress
 
-	l1ELComponent, ok := o.registry.Get(stack.ConvertL1ELNodeID(l1ELID).ComponentID)
+	l1ELComponent, ok := o.registry.Get(l1ELID)
 	require.True(ok, "l1El must exist")
 	l1EL := l1ELComponent.(L1ELNode)
 
@@ -147,7 +147,7 @@ func setRespectedGameType(o *Orchestrator, gameType gameTypes.GameType, l1ELID s
 	require.Equal(rcpt.Status, gethTypes.ReceiptStatusSuccessful, "set respected game type tx did not execute correctly")
 }
 
-func addGameType(o *Orchestrator, absolutePrestate common.Hash, gameType gameTypes.GameType, l1ELID stack.L1ELNodeID, l2ChainID eth.ChainID) {
+func addGameType(o *Orchestrator, absolutePrestate common.Hash, gameType gameTypes.GameType, l1ELID stack.ComponentID, l2ChainID eth.ChainID) {
 	t := o.P()
 	require := t.Require()
 	require.NotNil(o.wb, "must have a world builder")
@@ -155,7 +155,7 @@ func addGameType(o *Orchestrator, absolutePrestate common.Hash, gameType gameTyp
 
 	opcmAddr := o.wb.output.ImplementationsDeployment.OpcmImpl
 
-	l1ELComponent, ok := o.registry.Get(stack.ConvertL1ELNodeID(l1ELID).ComponentID)
+	l1ELComponent, ok := o.registry.Get(l1ELID)
 	require.True(ok, "l1El must exist")
 	l1EL := l1ELComponent.(L1ELNode)
 
