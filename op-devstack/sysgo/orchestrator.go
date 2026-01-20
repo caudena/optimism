@@ -179,6 +179,10 @@ func (o *Orchestrator) RegisterL2MetricsTargets(id stack.IDWithChain, endpoints 
 	o.l2MetricsMu.Lock()
 	defer o.l2MetricsMu.Unlock()
 
+	if o.l2MetricsEndpoints == nil {
+		o.l2MetricsEndpoints = make(map[string][]PrometheusMetricsTarget)
+	}
+
 	if existing, ok := o.l2MetricsEndpoints[id.Key()]; ok {
 		o.p.Logger().Warn("multiple endpoints registered with the same key", "key", id.Key(), "existing", existing, "new", endpoints)
 		return
