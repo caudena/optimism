@@ -274,7 +274,7 @@ dependencies = [
  "alloy-consensus",
  "alloy-eips",
  "alloy-hardforks",
- "alloy-op-hardforks",
+ "alloy-op-hardforks 0.4.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "alloy-primitives",
  "alloy-rpc-types-engine",
  "alloy-rpc-types-eth",
@@ -391,13 +391,24 @@ dependencies = [
  "alloy-consensus",
  "alloy-eips",
  "alloy-evm",
- "alloy-op-hardforks",
+ "alloy-op-hardforks 0.4.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "alloy-primitives",
  "auto_impl",
  "op-alloy",
  "op-revm",
  "revm",
  "thiserror 2.0.18",
+]
+
+[[package]]
+name = "alloy-op-hardforks"
+version = "0.4.7"
+dependencies = [
+ "alloy-chains",
+ "alloy-hardforks",
+ "alloy-primitives",
+ "auto_impl",
+ "serde",
 ]
 
 [[package]]
@@ -410,7 +421,6 @@ dependencies = [
  "alloy-hardforks",
  "alloy-primitives",
  "auto_impl",
- "serde",
 ]
 
 [[package]]
@@ -8172,7 +8182,7 @@ dependencies = [
  "alloy-eips",
  "alloy-genesis",
  "alloy-hardforks",
- "alloy-op-hardforks",
+ "alloy-op-hardforks 0.4.7",
  "alloy-primitives",
  "derive_more",
  "miniz_oxide",
@@ -8342,7 +8352,7 @@ dependencies = [
 name = "reth-optimism-forks"
 version = "1.10.2"
 dependencies = [
- "alloy-op-hardforks",
+ "alloy-op-hardforks 0.4.7",
  "alloy-primitives",
  "once_cell",
  "reth-ethereum-forks",
@@ -8355,7 +8365,7 @@ dependencies = [
  "alloy-consensus",
  "alloy-genesis",
  "alloy-network",
- "alloy-op-hardforks",
+ "alloy-op-hardforks 0.4.7",
  "alloy-primitives",
  "alloy-rpc-types-engine",
  "alloy-rpc-types-eth",
@@ -8482,7 +8492,7 @@ dependencies = [
  "alloy-consensus",
  "alloy-eips",
  "alloy-json-rpc",
- "alloy-op-hardforks",
+ "alloy-op-hardforks 0.4.7",
  "alloy-primitives",
  "alloy-rpc-client",
  "alloy-rpc-types-debug",

@@ -200,9 +200,17 @@ impl OpChainSpecBuilder {
         self
     }
 
+    /// Enable Karst at genesis
+    pub fn karst_activated(mut self) -> Self {
+        self = self.jovian_activated();
+        self.inner = self.inner.with_fork(EthereumHardfork::Osaka, ForkCondition::Timestamp(0));
+        self.inner = self.inner.with_fork(OpHardfork::Karst, ForkCondition::Timestamp(0));
+        self
+    }
+
     /// Enable Interop at genesis
     pub fn interop_activated(mut self) -> Self {
-        self = self.jovian_activated();
+        self = self.karst_activated();
         self.inner = self.inner.with_fork(OpHardfork::Interop, ForkCondition::Timestamp(0));
         self
     }
@@ -344,6 +352,13 @@ impl From<Genesis> for OpChainSpec {
         let genesis_info =
             optimism_genesis_info.optimism_chain_info.genesis_info.unwrap_or_default();
 
+        // Extract karst_time from extra_fields since op-alloy doesn't have it yet
+        let karst_time: Option<u64> = genesis
+            .config
+            .extra_fields
+            .get("karstTime")
+            .and_then(|v| v.as_u64());
+
         // Block-based hardforks
         let hardfork_opts = [
             (EthereumHardfork::Frontier.boxed(), Some(0)),
@@ -384,6 +399,7 @@ impl From<Genesis> for OpChainSpec {
             (EthereumHardfork::Shanghai.boxed(), genesis_info.canyon_time),
             (EthereumHardfork::Cancun.boxed(), genesis_info.ecotone_time),
             (EthereumHardfork::Prague.boxed(), genesis_info.isthmus_time),
+            (EthereumHardfork::Osaka.boxed(), karst_time),
             // OP
             (OpHardfork::Regolith.boxed(), genesis_info.regolith_time),
             (OpHardfork::Canyon.boxed(), genesis_info.canyon_time),
@@ -393,6 +409,7 @@ impl From<Genesis> for OpChainSpec {
             (OpHardfork::Holocene.boxed(), genesis_info.holocene_time),
             (OpHardfork::Isthmus.boxed(), genesis_info.isthmus_time),
             (OpHardfork::Jovian.boxed(), genesis_info.jovian_time),
+            (OpHardfork::Karst.boxed(), karst_time),
             (OpHardfork::Interop.boxed(), genesis_info.interop_time),
         ];
 
@@ -1165,6 +1182,7 @@ mod tests {
                     (String::from("holoceneTime"), 0.into()),
                     (String::from("isthmusTime"), 0.into()),
                     (String::from("jovianTime"), 0.into()),
+                    (String::from("karstTime"), 0.into()),
                 ]
                 .into_iter()
                 .collect(),
@@ -1203,6 +1221,8 @@ mod tests {
             EthereumHardfork::Prague.boxed(),
             OpHardfork::Isthmus.boxed(),
             OpHardfork::Jovian.boxed(),
+            EthereumHardfork::Osaka.boxed(),
+            OpHardfork::Karst.boxed(),
             // OpHardfork::Interop.boxed(),
         ];
 

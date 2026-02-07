@@ -48,6 +48,8 @@ hardfork!(
         Isthmus,
         /// Jovian: <https://github.com/ethereum-optimism/specs/tree/main/specs/protocol/jovian>
         Jovian,
+        /// Karst: Osaka EL features on L2
+        Karst,
         /// TODO: add interop hardfork overview when available
         Interop,
     }
@@ -105,7 +107,7 @@ impl OpHardfork {
     }
 
     /// Optimism mainnet list of hardforks.
-    pub const fn op_mainnet() -> [(Self, ForkCondition); 9] {
+    pub const fn op_mainnet() -> [(Self, ForkCondition); 10] {
         [
             (Self::Bedrock, ForkCondition::Block(OP_MAINNET_BEDROCK_BLOCK)),
             (Self::Regolith, ForkCondition::Timestamp(OP_MAINNET_REGOLITH_TIMESTAMP)),
@@ -116,11 +118,12 @@ impl OpHardfork {
             (Self::Holocene, ForkCondition::Timestamp(OP_MAINNET_HOLOCENE_TIMESTAMP)),
             (Self::Isthmus, ForkCondition::Timestamp(OP_MAINNET_ISTHMUS_TIMESTAMP)),
             (Self::Jovian, ForkCondition::Timestamp(OP_MAINNET_JOVIAN_TIMESTAMP)),
+            (Self::Karst, ForkCondition::Never),
         ]
     }
 
     /// Optimism Sepolia list of hardforks.
-    pub const fn op_sepolia() -> [(Self, ForkCondition); 9] {
+    pub const fn op_sepolia() -> [(Self, ForkCondition); 10] {
         [
             (Self::Bedrock, ForkCondition::Block(OP_SEPOLIA_BEDROCK_BLOCK)),
             (Self::Regolith, ForkCondition::Timestamp(OP_SEPOLIA_REGOLITH_TIMESTAMP)),
@@ -131,11 +134,12 @@ impl OpHardfork {
             (Self::Holocene, ForkCondition::Timestamp(OP_SEPOLIA_HOLOCENE_TIMESTAMP)),
             (Self::Isthmus, ForkCondition::Timestamp(OP_SEPOLIA_ISTHMUS_TIMESTAMP)),
             (Self::Jovian, ForkCondition::Timestamp(OP_SEPOLIA_JOVIAN_TIMESTAMP)),
+            (Self::Karst, ForkCondition::Never),
         ]
     }
 
     /// Base mainnet list of hardforks.
-    pub const fn base_mainnet() -> [(Self, ForkCondition); 9] {
+    pub const fn base_mainnet() -> [(Self, ForkCondition); 10] {
         [
             (Self::Bedrock, ForkCondition::Block(BASE_MAINNET_BEDROCK_BLOCK)),
             (Self::Regolith, ForkCondition::Timestamp(BASE_MAINNET_REGOLITH_TIMESTAMP)),
@@ -146,11 +150,12 @@ impl OpHardfork {
             (Self::Holocene, ForkCondition::Timestamp(BASE_MAINNET_HOLOCENE_TIMESTAMP)),
             (Self::Isthmus, ForkCondition::Timestamp(BASE_MAINNET_ISTHMUS_TIMESTAMP)),
             (Self::Jovian, ForkCondition::Timestamp(BASE_MAINNET_JOVIAN_TIMESTAMP)),
+            (Self::Karst, ForkCondition::Never),
         ]
     }
 
     /// Base Sepolia list of hardforks.
-    pub const fn base_sepolia() -> [(Self, ForkCondition); 9] {
+    pub const fn base_sepolia() -> [(Self, ForkCondition); 10] {
         [
             (Self::Bedrock, ForkCondition::Block(BASE_SEPOLIA_BEDROCK_BLOCK)),
             (Self::Regolith, ForkCondition::Timestamp(BASE_SEPOLIA_REGOLITH_TIMESTAMP)),
@@ -161,11 +166,12 @@ impl OpHardfork {
             (Self::Holocene, ForkCondition::Timestamp(BASE_SEPOLIA_HOLOCENE_TIMESTAMP)),
             (Self::Isthmus, ForkCondition::Timestamp(BASE_SEPOLIA_ISTHMUS_TIMESTAMP)),
             (Self::Jovian, ForkCondition::Timestamp(BASE_SEPOLIA_JOVIAN_TIMESTAMP)),
+            (Self::Karst, ForkCondition::Never),
         ]
     }
 
     /// Devnet list of hardforks.
-    pub const fn devnet() -> [(Self, ForkCondition); 9] {
+    pub const fn devnet() -> [(Self, ForkCondition); 10] {
         [
             (Self::Bedrock, ForkCondition::ZERO_BLOCK),
             (Self::Regolith, ForkCondition::ZERO_TIMESTAMP),
@@ -176,6 +182,7 @@ impl OpHardfork {
             (Self::Holocene, ForkCondition::ZERO_TIMESTAMP),
             (Self::Isthmus, ForkCondition::ZERO_TIMESTAMP),
             (Self::Jovian, ForkCondition::Timestamp(1762185600)),
+            (Self::Karst, ForkCondition::Never),
         ]
     }
 
@@ -240,6 +247,11 @@ pub trait OpHardforks: EthereumHardforks {
     /// timestamp.
     fn is_jovian_active_at_timestamp(&self, timestamp: u64) -> bool {
         self.op_fork_activation(OpHardfork::Jovian).active_at_timestamp(timestamp)
+    }
+
+    /// Returns `true` if [`Karst`](OpHardfork::Karst) is active at given block timestamp.
+    fn is_karst_active_at_timestamp(&self, timestamp: u64) -> bool {
+        self.op_fork_activation(OpHardfork::Karst).active_at_timestamp(timestamp)
     }
 
     /// Returns `true` if [`Interop`](OpHardfork::Interop) is active at given block
@@ -308,8 +320,8 @@ impl OpChainHardforks {
 
 impl EthereumHardforks for OpChainHardforks {
     fn ethereum_fork_activation(&self, fork: EthereumHardfork) -> ForkCondition {
-        use EthereumHardfork::{Cancun, Prague, Shanghai};
-        use OpHardfork::{Canyon, Ecotone, Isthmus};
+        use EthereumHardfork::{Cancun, Osaka, Prague, Shanghai};
+        use OpHardfork::{Canyon, Ecotone, Isthmus, Karst};
 
         if self.forks.is_empty() {
             return ForkCondition::Never;
@@ -321,6 +333,7 @@ impl EthereumHardforks for OpChainHardforks {
             Shanghai if forks_len <= Canyon.idx() => ForkCondition::Never,
             Cancun if forks_len <= Ecotone.idx() => ForkCondition::Never,
             Prague if forks_len <= Isthmus.idx() => ForkCondition::Never,
+            Osaka if forks_len <= Karst.idx() => ForkCondition::Never,
             _ => self[fork],
         }
     }
@@ -352,6 +365,7 @@ impl Index<OpHardfork> for OpChainHardforks {
             Holocene => &self.forks[Holocene.idx()].1,
             Isthmus => &self.forks[Isthmus.idx()].1,
             Jovian => &self.forks[Jovian.idx()].1,
+            Karst => &self.forks[Karst.idx()].1,
             Interop => &self.forks[Interop.idx()].1,
         }
     }
@@ -385,8 +399,9 @@ impl Index<EthereumHardfork> for OpChainHardforks {
             Shanghai => &self[Canyon],
             Cancun => &self[Ecotone],
             Prague => &self[Isthmus],
+            Osaka => &self[Karst],
             // Not activated for now
-            Osaka | Bpo1 | Bpo2 | Bpo3 | Bpo4 | Bpo5 | Amsterdam => &ForkCondition::Never,
+            Bpo1 | Bpo2 | Bpo3 | Bpo4 | Bpo5 | Amsterdam => &ForkCondition::Never,
             _ => unreachable!(),
         }
     }
@@ -403,7 +418,7 @@ mod tests {
     fn check_op_hardfork_from_str() {
         let hardfork_str = [
             "beDrOck", "rEgOlITH", "cAnYoN", "eCoToNe", "FJorD", "GRaNiTe", "hOlOcEnE", "isthMUS",
-            "jOvIaN", "inTerOP",
+            "jOvIaN", "kArSt", "inTerOP",
         ];
         let expected_hardforks = [
             OpHardfork::Bedrock,
@@ -415,6 +430,7 @@ mod tests {
             OpHardfork::Holocene,
             OpHardfork::Isthmus,
             OpHardfork::Jovian,
+            OpHardfork::Karst,
             OpHardfork::Interop,
         ];
 
@@ -458,6 +474,7 @@ mod tests {
             ForkCondition::Timestamp(OP_MAINNET_ISTHMUS_TIMESTAMP)
         );
         assert_eq!(op_mainnet_forks[Jovian], ForkCondition::Timestamp(OP_MAINNET_JOVIAN_TIMESTAMP));
+        assert_eq!(op_mainnet_forks.op_fork_activation(Karst), ForkCondition::Never);
         assert_eq!(op_mainnet_forks.op_fork_activation(Interop), ForkCondition::Never);
     }
 
@@ -490,6 +507,7 @@ mod tests {
             ForkCondition::Timestamp(OP_SEPOLIA_ISTHMUS_TIMESTAMP)
         );
         assert_eq!(op_sepolia_forks[Jovian], ForkCondition::Timestamp(OP_SEPOLIA_JOVIAN_TIMESTAMP));
+        assert_eq!(op_sepolia_forks.op_fork_activation(Karst), ForkCondition::Never);
         assert_eq!(op_sepolia_forks.op_fork_activation(Interop), ForkCondition::Never);
     }
 
@@ -535,6 +553,7 @@ mod tests {
             base_mainnet_forks[Jovian],
             ForkCondition::Timestamp(OP_MAINNET_JOVIAN_TIMESTAMP)
         );
+        assert_eq!(base_mainnet_forks.op_fork_activation(Karst), ForkCondition::Never);
         assert_eq!(base_mainnet_forks.op_fork_activation(Interop), ForkCondition::Never);
     }
 
@@ -580,6 +599,7 @@ mod tests {
             base_sepolia_forks[Jovian],
             ForkCondition::Timestamp(OP_SEPOLIA_JOVIAN_TIMESTAMP)
         );
+        assert_eq!(base_sepolia_forks.op_fork_activation(Karst), ForkCondition::Never);
         assert_eq!(base_sepolia_forks.op_fork_activation(Interop), ForkCondition::Never);
     }
 
