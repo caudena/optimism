@@ -49,6 +49,10 @@ abstract contract FeatureFlags {
             console.log("Setup: DEV_FEATURE__L2CM is enabled");
             devFeatureBitmap |= DevFeatures.L2CM;
         }
+        if (Config.devFeatureRespectedGameTypeCannonKona()) {
+            console.log("Setup: DEV_FEATURE__RESPECTED_GAME_TYPE_CANNON_KONA is enabled");
+            devFeatureBitmap |= DevFeatures.RESPECTED_GAME_TYPE_CANNON_KONA;
+        }
     }
 
     /// @notice Returns the string name of a feature.
@@ -61,6 +65,8 @@ abstract contract FeatureFlags {
             return "DEV_FEATURE__OPCM_V2";
         } else if (_feature == DevFeatures.L2CM) {
             return "DEV_FEATURE__L2CM";
+        } else if (_feature == DevFeatures.RESPECTED_GAME_TYPE_CANNON_KONA) {
+            return "DEV_FEATURE__RESPECTED_GAME_TYPE_CANNON_KONA";
         } else if (_feature == Features.CUSTOM_GAS_TOKEN) {
             return "SYS_FEATURE__CUSTOM_GAS_TOKEN";
         } else if (_feature == Features.ETH_LOCKBOX) {
