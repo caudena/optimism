@@ -3282,9 +3282,9 @@ workflows:
       - go-binaries-for-sysgo:
           context:
             - circleci-repo-readonly-authenticated-github-token
-      # IN-MEMORY (all) - Go stack
+      # IN-MEMORY (all) - op-node/op-geth
       - op-acceptance-tests:
-          name: memory-all
+          name: memory-all-opn-op-geth
           gate: "" # Empty gate = gateless mode
           no_output_timeout: 120m # Allow longer runs for memory-all gate
           context:
@@ -3298,7 +3298,7 @@ workflows:
             - go-binaries-for-sysgo
       # IN-MEMORY (all) - op-node/op-reth
       - op-acceptance-tests:
-          name: memory-all-op-reth
+          name: memory-all-opn-op-reth
           gate: "" # Empty gate = gateless mode
           l2_el_kind: op-reth
           no_output_timeout: 120m # Allow longer runs for memory-all gate
