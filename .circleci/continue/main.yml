@@ -420,6 +420,7 @@ commands:
             ROOT_DIR="$(pwd)"
             BIN_DIR="$ROOT_DIR/.circleci-cache/rust-binaries"
             echo "export RUST_BINARY_PATH_KONA_NODE=$ROOT_DIR/rust/target/release/kona-node" >> "$BASH_ENV"
+            echo "export OP_RETH_EXEC_PATH=$ROOT_DIR/rust/target/release/op-reth" >> "$BASH_ENV"
             echo "export RUST_BINARY_PATH_KONA_SUPERVISOR=$ROOT_DIR/rust/target/release/kona-supervisor" >> "$BASH_ENV"
             echo "export RUST_BINARY_PATH_OP_RBUILDER=$BIN_DIR/op-rbuilder" >> "$BASH_ENV"
             echo "export RUST_BINARY_PATH_ROLLUP_BOOST=$BIN_DIR/rollup-boost" >> "$BASH_ENV"
@@ -804,6 +805,10 @@ jobs:
         description: The gate to run the acceptance tests against. Must be defined in op-acceptance-tests/acceptance-tests.yaml.
         type: string
         default: "interop"
+      stack_type:
+        description: "Stack type to use: go (default op-node/op-geth) or rust (kona/op-reth)"
+        type: string
+        default: "go"
       no_output_timeout:
         description: Timeout for when CircleCI kills the job if there's no output
         type: string
@@ -840,6 +845,15 @@ jobs:
             # Best-effort: show engine status and existing enclaves before the test run
             kurtosis engine status || true
             kurtosis enclave ls || true
+      - when:
+          condition:
+            equal: ["rust", <<parameters.stack_type>>]
+          steps:
+            - run:
+                name: Configure rust stack environment
+                command: |
+                  echo "export DEVSTACK_L2CL_KIND=kona" >> "$BASH_ENV"
+                  echo "export DEVSTACK_L2EL_KIND=op-reth" >> "$BASH_ENV"
       - run:
           name: Run acceptance tests (devnet=<<parameters.devnet>>, gate=<<parameters.gate>>)
           working_directory: op-acceptance-tests
@@ -2033,6 +2047,10 @@ jobs:
         description: The gate to run the acceptance tests against. This gate should be defined in op-acceptance-tests/acceptance-tests.yaml.
         type: string
         default: ""
+      stack_type:
+        description: "Stack type to use: go (default op-node/op-geth) or rust (kona/op-reth)"
+        type: string
+        default: "go"
       no_output_timeout:
         description: Timeout for when CircleCI kills the job if there's no output
         type: string
@@ -2075,6 +2093,15 @@ jobs:
           command: |
             echo 'export CIRCLECI_PIPELINE_SCHEDULE_NAME="<< pipeline.schedule.name >>"' >> $BASH_ENV
             echo 'export CIRCLECI_PARAMETERS_SYNC_TEST_OP_NODE_DISPATCH="<< pipeline.parameters.c-sync_test_op_node_dispatch >>"' >> $BASH_ENV
+      - when:
+          condition:
+            equal: ["rust", <<parameters.stack_type>>]
+          steps:
+            - run:
+                name: Configure rust stack environment
+                command: |
+                  echo "export DEVSTACK_L2CL_KIND=kona" >> "$BASH_ENV"
+                  echo "export DEVSTACK_L2EL_KIND=op-reth" >> "$BASH_ENV"
       # Run the acceptance tests
       - run:
           name: Run acceptance tests (gate=<<parameters.gate>>)
@@ -2141,6 +2168,10 @@ jobs:
         description: The gate to run the acceptance tests against. This gate should be defined in op-acceptance-tests/acceptance-tests.yaml.
         type: string
         default: ""
+      stack_type:
+        description: "Stack type to use: go (default op-node/op-geth) or rust (kona/op-reth)"
+        type: string
+        default: "go"
       no_output_timeout:
         description: Timeout for when CircleCI kills the job if there's no output
         type: string
@@ -2164,10 +2195,23 @@ jobs:
           command: |
             ROOT_DIR="$(pwd)"
             BIN_DIR="$ROOT_DIR/.circleci-cache/rust-binaries"
+
             echo "export RUST_BINARY_PATH_KONA_NODE=$ROOT_DIR/rust/target/release/kona-node" >> "$BASH_ENV"
+
+            echo "export OP_RETH_EXEC_PATH=$ROOT_DIR/rust/target/release/op-reth" >> "$BASH_ENV"
+
             echo "export RUST_BINARY_PATH_KONA_SUPERVISOR=$ROOT_DIR/rust/target/release/kona-supervisor" >> "$BASH_ENV"
             echo "export RUST_BINARY_PATH_OP_RBUILDER=$BIN_DIR/op-rbuilder" >> "$BASH_ENV"
             echo "export RUST_BINARY_PATH_ROLLUP_BOOST=$BIN_DIR/rollup-boost" >> "$BASH_ENV"
+      - when:
+          condition:
+            equal: ["rust", <<parameters.stack_type>>]
+          steps:
+            - run:
+                name: Configure rust stack environment
+                command: |
+                  echo "export DEVSTACK_L2CL_KIND=kona" >> "$BASH_ENV"
+                  echo "export DEVSTACK_L2EL_KIND=op-reth" >> "$BASH_ENV"
       # Restore cached Go modules
       - restore_cache:
           keys:
@@ -2253,6 +2297,10 @@ jobs:
       gate:
         type: string
         default: "flake-shake"
+      stack_type:
+        description: "Stack type to use: go (default op-node/op-geth) or rust (kona/op-reth)"
+        type: string
+        default: "go"
     machine:
       image: ubuntu-2404:current
     resource_class: xlarge
@@ -2269,9 +2317,19 @@ jobs:
             ROOT_DIR="$(pwd)"
             BIN_DIR="$ROOT_DIR/.circleci-cache/rust-binaries"
             echo "export RUST_BINARY_PATH_KONA_NODE=$BIN_DIR/kona-node" >> "$BASH_ENV"
+            echo "export OP_RETH_EXEC_PATH=$ROOT_DIR/rust/target/release/op-reth" >> "$BASH_ENV"
             echo "export RUST_BINARY_PATH_KONA_SUPERVISOR=$BIN_DIR/kona-supervisor" >> "$BASH_ENV"
             echo "export RUST_BINARY_PATH_OP_RBUILDER=$BIN_DIR/op-rbuilder" >> "$BASH_ENV"
             echo "export RUST_BINARY_PATH_ROLLUP_BOOST=$BIN_DIR/rollup-boost" >> "$BASH_ENV"
+      - when:
+          condition:
+            equal: ["rust", <<parameters.stack_type>>]
+          steps:
+            - run:
+                name: Configure rust stack environment
+                command: |
+                  echo "export DEVSTACK_L2CL_KIND=kona" >> "$BASH_ENV"
+                  echo "export DEVSTACK_L2EL_KIND=op-reth" >> "$BASH_ENV"
       - restore_cache:
           keys:
             - go-mod-v1-{{ checksum "go.sum" }}
@@ -3194,19 +3252,10 @@ workflows:
           context:
             - circleci-repo-readonly-authenticated-github-token
       # Acceptance test jobs (formerly in separate acceptance-tests workflow)
-      - rust-build-binary: &cannon-kona-host
-          name: cannon-kona-host
+      - rust-build-binary:
+          name: rust-workspace-binaries
           directory: rust
           profile: "release"
-          binary: "kona-host"
-          save_cache: true
-          context:
-            - circleci-repo-readonly-authenticated-github-token
-      - rust-build-binary: &kona-build-release
-          name: kona-build-release
-          directory: rust
-          profile: "release"
-          features: "default"
           save_cache: true
           context:
             - circleci-repo-readonly-authenticated-github-token
@@ -3227,13 +3276,13 @@ workflows:
             - circleci-repo-readonly-authenticated-github-token
       - rust-binaries-for-sysgo:
           requires:
-            - kona-build-release
+            - rust-workspace-binaries
             - rust-build-op-rbuilder
             - rust-build-rollup-boost
       - go-binaries-for-sysgo:
           context:
             - circleci-repo-readonly-authenticated-github-token
-      # IN-MEMORY (all)
+      # IN-MEMORY (all) - Go stack
       - op-acceptance-tests:
           name: memory-all
           gate: "" # Empty gate = gateless mode
@@ -3245,7 +3294,21 @@ workflows:
           requires:
             - contracts-bedrock-build
             - cannon-prestate
-            - cannon-kona-host
+            - rust-binaries-for-sysgo
+            - go-binaries-for-sysgo
+      # IN-MEMORY (all) - Rust stack (kona/op-reth)
+      - op-acceptance-tests:
+          name: memory-all-rust
+          gate: "" # Empty gate = gateless mode
+          stack_type: rust
+          no_output_timeout: 120m # Allow longer runs for memory-all gate
+          context:
+            - circleci-repo-readonly-authenticated-github-token
+            - slack
+            - discord
+          requires:
+            - contracts-bedrock-build
+            - cannon-prestate
             - rust-binaries-for-sysgo
             - go-binaries-for-sysgo
       # Generate flaky test report
