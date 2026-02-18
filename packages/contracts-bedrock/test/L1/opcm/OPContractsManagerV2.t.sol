@@ -652,6 +652,14 @@ contract OPContractsManagerV2_Upgrade_Test is OPContractsManagerV2_Upgrade_TestI
     function test_upgrade_enableGameType_succeeds() public {
         uint256 originalBond = disputeGameFactory.initBonds(GameTypes.CANNON);
 
+        // Switch respected game type away from CANNON so it can be disabled.
+        v2UpgradeInput.extraInstructions.push(
+            IOPContractsManagerUtils.ExtraInstruction({
+                key: "overrides.cfg.startingRespectedGameType",
+                data: abi.encode(GameTypes.CANNON_KONA)
+            })
+        );
+
         // First, disable Cannon and clear its bond so the factory entry is removed.
         v2UpgradeInput.disputeGameConfigs[0].enabled = false;
         v2UpgradeInput.disputeGameConfigs[0].initBond = 0;
@@ -670,8 +678,27 @@ contract OPContractsManagerV2_Upgrade_Test is OPContractsManagerV2_Upgrade_TestI
         assertEq(disputeGameFactory.initBonds(GameTypes.CANNON), originalBond, "init bond not restored");
     }
 
+    /// @notice Tests that disabling the respected game type reverts.
+    function test_upgrade_disableRespectedGameType_reverts() public {
+        v2UpgradeInput.disputeGameConfigs[0].enabled = false;
+        v2UpgradeInput.disputeGameConfigs[0].initBond = 0;
+        // nosemgrep: sol-style-use-abi-encodecall
+        runCurrentUpgradeV2(
+            chainPAO,
+            abi.encodeWithSelector(IOPContractsManagerV2.OPContractsManagerV2_InvalidRespectedGameType.selector)
+        );
+    }
+
     /// @notice Tests that disabling a game type removes it from the factory.
     function test_upgrade_disableGameType_succeeds() public {
+        // Switch respected game type away from CANNON so it can be disabled.
+        v2UpgradeInput.extraInstructions.push(
+            IOPContractsManagerUtils.ExtraInstruction({
+                key: "overrides.cfg.startingRespectedGameType",
+                data: abi.encode(GameTypes.CANNON_KONA)
+            })
+        );
+
         // Establish the baseline where Cannon is enabled.
         runCurrentUpgradeV2(chainPAO);
         assertEq(
