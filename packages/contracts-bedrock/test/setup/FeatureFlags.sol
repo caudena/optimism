@@ -49,6 +49,10 @@ abstract contract FeatureFlags {
             console.log("Setup: DEV_FEATURE__L2CM is enabled");
             devFeatureBitmap |= DevFeatures.L2CM;
         }
+        if (Config.devFeatureSuperRootGamesMigration()) {
+            console.log("Setup: DEV_FEATURE__SUPER_ROOT_GAMES_MIGRATION is enabled");
+            devFeatureBitmap |= DevFeatures.SUPER_ROOT_GAMES_MIGRATION;
+        }
     }
 
     /// @notice Returns the string name of a feature.
@@ -61,6 +65,8 @@ abstract contract FeatureFlags {
             return "DEV_FEATURE__OPCM_V2";
         } else if (_feature == DevFeatures.L2CM) {
             return "DEV_FEATURE__L2CM";
+        } else if (_feature == DevFeatures.SUPER_ROOT_GAMES_MIGRATION) {
+            return "DEV_FEATURE__SUPER_ROOT_GAMES_MIGRATION";
         } else if (_feature == Features.CUSTOM_GAS_TOKEN) {
             return "SYS_FEATURE__CUSTOM_GAS_TOKEN";
         } else if (_feature == Features.ETH_LOCKBOX) {
