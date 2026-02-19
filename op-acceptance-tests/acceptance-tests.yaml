@@ -56,6 +56,12 @@ gates:
          owner: "anton evangelatov"
          target_gate: "depreqres"
 
+  - id: jovian
+    description: "Jovian network tests."
+    tests:
+      - package: github.com/ethereum-optimism/optimism/op-acceptance-tests/tests/jovian/...
+        timeout: 10m
+
   - id: isthmus
     description: "Isthmus network tests."
     tests:
@@ -74,6 +80,7 @@ gates:
     description: "Sanity/smoke acceptance tests for all networks."
     inherits:
       - isthmus
+      - jovian
     tests:
       - package: github.com/ethereum-optimism/optimism/op-acceptance-tests/tests/base
       - package: github.com/ethereum-optimism/optimism/op-acceptance-tests/tests/base/deposit
@@ -146,14 +153,6 @@ gates:
     tests:
       - package: github.com/ethereum-optimism/optimism/op-acceptance-tests/tests/sync_tester/sync_tester_ext_el
         timeout: 30m
-
-  - id: jovian
-    inherits:
-      - base
-    description: "Jovian network tests."
-    tests:
-      - package: github.com/ethereum-optimism/optimism/op-acceptance-tests/tests/jovian/...
-        timeout: 10m
 
   - id: cgt
     description: "Custom Gas Token (CGT) network tests."

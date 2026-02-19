@@ -3299,7 +3299,7 @@ workflows:
       # IN-MEMORY (all) - op-node/op-reth
       - op-acceptance-tests:
           name: memory-all-opn-op-reth
-          gate: "" # Empty gate = gateless mode
+          gate: "base"
           l2_el_kind: op-reth
           no_output_timeout: 120m # Allow longer runs for memory-all gate
           context:
@@ -3314,7 +3314,7 @@ workflows:
       # IN-MEMORY (all) - kona/op-reth
       - op-acceptance-tests:
           name: memory-all-kona-op-reth
-          gate: "" # Empty gate = gateless mode
+          gate: "base"
           l2_cl_kind: kona
           l2_el_kind: op-reth
           no_output_timeout: 120m # Allow longer runs for memory-all gate
