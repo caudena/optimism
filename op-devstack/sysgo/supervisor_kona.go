@@ -159,7 +159,7 @@ func WithKonaSupervisor(supervisorID stack.SupervisorID, clusterID stack.Cluster
 		}
 
 		execPath, err := EnsureRustBinary(p, RustBinarySpec{
-			SrcDir:  "kona",
+			SrcDir:  "rust",
 			Package: "kona-supervisor",
 			Binary:  "kona-supervisor",
 		})

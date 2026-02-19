@@ -278,7 +278,7 @@ func withKonaNode(l2CLID stack.L2CLNodeID, l1CLID stack.L1CLNodeID, l1ELID stack
 		}
 
 		execPath, err := EnsureRustBinary(p, RustBinarySpec{
-			SrcDir:  "kona",
+			SrcDir:  "rust",
 			Package: "kona-node",
 			Binary:  "kona-node",
 		})
