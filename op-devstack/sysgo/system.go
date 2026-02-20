@@ -601,8 +601,6 @@ func defaultSupernodeSuperProofsSystem(dest *DefaultSupernodeInteropProofsSystem
 	// Shared supernode for both L2 chains (registers per-chain L2CL proxies)
 	opt.Add(WithSharedSupernodeCLsInterop(ids.Supernode, []L2CLs{{CLID: ids.L2ACL, ELID: ids.L2AEL}, {CLID: ids.L2BCL, ELID: ids.L2BEL}}, ids.L1CL, ids.L1EL))
 
-	opt.Add(WithTestSequencer(ids.TestSequencer, ids.L1CL, ids.L2ACL, ids.L1EL, ids.L2AEL))
-
 	opt.Add(WithBatcher(ids.L2ABatcher, ids.L1EL, ids.L2ACL, ids.L2AEL))
 	opt.Add(WithBatcher(ids.L2BBatcher, ids.L1EL, ids.L2BCL, ids.L2BEL))
 
