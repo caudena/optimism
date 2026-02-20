@@ -59,7 +59,9 @@ gates:
   - id: jovian
     description: "Jovian network tests."
     tests:
-      - package: github.com/ethereum-optimism/optimism/op-acceptance-tests/tests/jovian/...
+      - package: github.com/ethereum-optimism/optimism/op-acceptance-tests/tests/jovian/bpo2
+        timeout: 10m
+      - package: github.com/ethereum-optimism/optimism/op-acceptance-tests/tests/jovian/pectra
         timeout: 10m
 
   - id: isthmus
