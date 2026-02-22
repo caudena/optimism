@@ -32,16 +32,6 @@ import (
 	"github.com/ethereum/go-ethereum/rpc"
 )
 
-func TestMain(m *testing.M) {
-	presets.DoMain(m, presets.WithSimpleInterop(),
-		presets.WithLogFilter(
-			logfilter.DefaultMute(
-				logfilter.Level(slog.LevelWarn).Show(),
-			),
-		),
-	)
-}
-
 // TODO(16371) every txintent.Call implementation should probably just be a txplan.Option.
 func planCall(t devtest.T, call txintent.Call) txplan.Option {
 	plan := make([]txplan.Option, 0)
@@ -125,7 +115,13 @@ func setupLoadTest(gt *testing.T) (devtest.T, *L2, *L2) {
 }
 
 func setupL2s(t devtest.T) (*L2, *L2) {
-	sys := presets.NewSimpleInterop(t)
+	sys := presets.NewSimpleInterop(t,
+		presets.WithLogFilter(
+			logfilter.DefaultMute(
+				logfilter.Level(slog.LevelWarn).Show(),
+			),
+		),
+	)
 	blockTimeA := time.Duration(sys.L2ChainA.Escape().RollupConfig().BlockTime) * time.Second
 	blockTimeB := time.Duration(sys.L2ChainB.Escape().RollupConfig().BlockTime) * time.Second
 

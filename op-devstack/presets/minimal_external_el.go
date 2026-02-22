@@ -37,8 +37,11 @@ func WithExternalELWithSuperchainRegistry(networkPreset stack.ExtNetworkConfig) 
 	return stack.MakeCommon(sysgo.ExternalELSystemWithEndpointAndSuperchainRegistry(&sysgo.DefaultMinimalExternalELSystemIDs{}, networkPreset))
 }
 
-func NewMinimalExternalEL(t devtest.T) *MinimalExternalEL {
-	orch := Orchestrator()
+// NewMinimalExternalEL creates a MinimalExternalEL preset for tests using an external execution layer.
+// Unlike other New* constructors, this function has no default topology option.
+// The caller must provide one via opts, e.g. WithExternalELWithSuperchainRegistry(networkPreset).
+func NewMinimalExternalEL(t devtest.T, opts ...stack.CommonOption) *MinimalExternalEL {
+	orch := NewTestOrchestrator(t, opts...)
 	system := shim.NewSystem(t)
 	orch.Hydrate(system)
 

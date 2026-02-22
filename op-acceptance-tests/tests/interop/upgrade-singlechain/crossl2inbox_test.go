@@ -17,7 +17,7 @@ import (
 func TestPostInbox(gt *testing.T) {
 	gt.Skip("Skipping Interop Acceptance Test")
 	t := devtest.ParallelT(gt)
-	sys := presets.NewSingleChainInterop(t)
+	sys := presets.NewSingleChainInterop(t, presets.WithSuggestedInteropActivationOffset(30), presets.WithInteropNotAtGenesis(), presets.WithL2NetworkCount(1))
 	devtest.RunParallel(t, sys.L2Networks(), func(t devtest.T, net *dsl.L2Network) {
 		require := t.Require()
 		el := net.Escape().L2ELNode(match.FirstL2EL)

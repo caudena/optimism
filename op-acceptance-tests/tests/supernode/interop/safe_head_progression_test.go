@@ -23,6 +23,7 @@ import (
 //   - SafeL2 eventually catches up to LocalSafeL2 (assuming we don't insert any invalid message, which we don't)
 //   - EL safe label is consistent with the SafeL2 from the CL
 func TestSupernodeInterop_SafeHeadTrailsLocalSafe(gt *testing.T) {
+	gt.Setenv("DEVSTACK_L2CL_KIND", "supernode")
 	t := devtest.SerialT(gt)
 	sys := presets.NewTwoL2SupernodeInterop(t, 0)
 	attempts := 15 // each attempt is hardcoded with a 2s by the DSL.
@@ -89,6 +90,7 @@ func TestSupernodeInterop_SafeHeadTrailsLocalSafe(gt *testing.T) {
 // - Cross-safe head is gated by the slower chain
 // - Safe head advances after slower chain catches up
 func TestSupernodeInterop_SafeHeadWithUnevenProgress(gt *testing.T) {
+	gt.Setenv("DEVSTACK_L2CL_KIND", "supernode")
 	t := devtest.SerialT(gt)
 	sys := presets.NewTwoL2SupernodeInterop(t, 0)
 	attempts := 15

@@ -15,6 +15,7 @@ import (
 // (A->B and B->A) to verify the supernode handles bidirectional interop correctly.
 // All messages are valid, and no interruptions to the chains are expected.
 func TestSupernodeInteropBidirectionalMessages(gt *testing.T) {
+	gt.Setenv("DEVSTACK_L2CL_KIND", "supernode")
 	t := devtest.SerialT(gt)
 	sys := presets.NewTwoL2SupernodeInterop(t, 0)
 

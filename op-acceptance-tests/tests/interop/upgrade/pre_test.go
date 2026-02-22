@@ -27,7 +27,7 @@ import (
 func TestPreNoInbox(gt *testing.T) {
 	gt.Skip("Skipping Interop Acceptance Test")
 	t := devtest.ParallelT(gt)
-	sys := presets.NewSimpleInterop(t)
+	sys := presets.NewSimpleInterop(t, presets.WithSuggestedInteropActivationOffset(60), presets.WithInteropNotAtGenesis())
 	require := t.Require()
 
 	t.Logger().Info("Starting")

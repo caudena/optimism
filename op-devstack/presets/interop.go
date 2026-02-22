@@ -47,11 +47,14 @@ type SingleChainInterop struct {
 	challengerConfig *challengerConfig.Config
 }
 
-func NewSingleChainInterop(t devtest.T) *SingleChainInterop {
+func NewSingleChainInterop(t devtest.T, opts ...stack.CommonOption) *SingleChainInterop {
+	orch := NewTestOrchestrator(t, append([]stack.CommonOption{WithSingleChainInterop()}, opts...)...)
 	system := shim.NewSystem(t)
-	orch := Orchestrator()
 	orch.Hydrate(system)
+	return singleChainInteropFromSystem(t, system, orch)
+}
 
+func singleChainInteropFromSystem(t devtest.T, system stack.ExtensibleSystem, orch stack.Orchestrator) *SingleChainInterop {
 	// At this point, either an op-supervisor (legacy) or op-supernode (replacement) is acceptable.
 	// The proof DSL depends only on super-roots and can be backed by either source.
 	t.Gate().True(len(system.Supervisors()) > 0 || len(system.Supernodes()) > 0, "expected at least one supervisor or supernode")
@@ -188,10 +191,30 @@ func WithUnscheduledInterop() stack.CommonOption {
 	)
 }
 
-func NewSimpleInterop(t devtest.T) *SimpleInterop {
-	singleChain := NewSingleChainInterop(t)
-	orch := Orchestrator()
-	l2B := singleChain.system.L2Network(match.Assume(t, match.L2ChainB))
+func NewSuperInteropSupernode(t devtest.T, opts ...stack.CommonOption) *SimpleInterop {
+	orch := NewTestOrchestrator(t, append([]stack.CommonOption{WithSuperInteropSupernode()}, opts...)...)
+	system := shim.NewSystem(t)
+	orch.Hydrate(system)
+	singleChain := singleChainInteropFromSystem(t, system, orch)
+	l2B := system.L2Network(match.Assume(t, match.L2ChainB))
+	out := &SimpleInterop{
+		SingleChainInterop: *singleChain,
+		L2ChainB:           dsl.NewL2Network(l2B, orch.ControlPlane()),
+		L2ELB:              dsl.NewL2ELNode(l2B.L2ELNode(match.Assume(t, match.FirstL2EL)), orch.ControlPlane()),
+		L2CLB:              dsl.NewL2CLNode(l2B.L2CLNode(match.Assume(t, match.FirstL2CL)), orch.ControlPlane()),
+		FaucetB:            dsl.NewFaucet(l2B.Faucet(match.Assume(t, match.FirstFaucet))),
+		L2BatcherB:         dsl.NewL2Batcher(l2B.L2Batcher(match.Assume(t, match.FirstL2Batcher))),
+	}
+	out.FunderB = dsl.NewFunder(out.Wallet, out.FaucetB, out.L2ELB)
+	return out
+}
+
+func NewSimpleInterop(t devtest.T, opts ...stack.CommonOption) *SimpleInterop {
+	orch := NewTestOrchestrator(t, append([]stack.CommonOption{WithSimpleInterop()}, opts...)...)
+	system := shim.NewSystem(t)
+	orch.Hydrate(system)
+	singleChain := singleChainInteropFromSystem(t, system, orch)
+	l2B := system.L2Network(match.Assume(t, match.L2ChainB))
 	out := &SimpleInterop{
 		SingleChainInterop: *singleChain,
 		L2ChainB:           dsl.NewL2Network(l2B, orch.ControlPlane()),
@@ -275,15 +298,26 @@ func WithMultiSupervisorInterop() stack.CommonOption {
 // Primary supervisor manages sequencer L2CLs for chain A, B.
 // Secondary supervisor manages verifier L2CLs for chain A, B.
 // Each L2CLs per chain is connected via P2P.
-func NewMultiSupervisorInterop(t devtest.T) *MultiSupervisorInterop {
-	simpleInterop := NewSimpleInterop(t)
-	orch := Orchestrator()
+func NewMultiSupervisorInterop(t devtest.T, opts ...stack.CommonOption) *MultiSupervisorInterop {
+	orch := NewTestOrchestrator(t, append([]stack.CommonOption{WithMultiSupervisorInterop()}, opts...)...)
+	system := shim.NewSystem(t)
+	orch.Hydrate(system)
+	singleChain := singleChainInteropFromSystem(t, system, orch)
+	l2B := system.L2Network(match.Assume(t, match.L2ChainB))
+	simpleInterop := &SimpleInterop{
+		SingleChainInterop: *singleChain,
+		L2ChainB:           dsl.NewL2Network(l2B, orch.ControlPlane()),
+		L2ELB:              dsl.NewL2ELNode(l2B.L2ELNode(match.Assume(t, match.FirstL2EL)), orch.ControlPlane()),
+		L2CLB:              dsl.NewL2CLNode(l2B.L2CLNode(match.Assume(t, match.FirstL2CL)), orch.ControlPlane()),
+		FaucetB:            dsl.NewFaucet(l2B.Faucet(match.Assume(t, match.FirstFaucet))),
+		L2BatcherB:         dsl.NewL2Batcher(l2B.L2Batcher(match.Assume(t, match.FirstL2Batcher))),
+	}
+	simpleInterop.FunderB = dsl.NewFunder(simpleInterop.Wallet, simpleInterop.FaucetB, simpleInterop.L2ELB)
 
-	l2A := simpleInterop.system.L2Network(match.Assume(t, match.L2ChainA))
-	l2B := simpleInterop.system.L2Network(match.Assume(t, match.L2ChainB))
+	l2A := system.L2Network(match.Assume(t, match.L2ChainA))
 	out := &MultiSupervisorInterop{
 		SimpleInterop:       *simpleInterop,
-		SupervisorSecondary: dsl.NewSupervisor(simpleInterop.system.Supervisor(match.Assume(t, match.SecondSupervisor)), orch.ControlPlane()),
+		SupervisorSecondary: dsl.NewSupervisor(system.Supervisor(match.Assume(t, match.SecondSupervisor)), orch.ControlPlane()),
 		L2ELA2:              dsl.NewL2ELNode(l2A.L2ELNode(match.Assume(t, match.SecondL2EL)), orch.ControlPlane()),
 		L2CLA2:              dsl.NewL2CLNode(l2A.L2CLNode(match.Assume(t, match.SecondL2CL)), orch.ControlPlane()),
 		L2ELB2:              dsl.NewL2ELNode(l2B.L2ELNode(match.Assume(t, match.SecondL2EL)), orch.ControlPlane()),
@@ -304,9 +338,9 @@ func WithMinimalInteropNoSupervisor() stack.CommonOption {
 }
 
 // NewMinimalInteropNoSupervisor creates a MinimalInteropNoSupervisor preset for acceptance tests.
-func NewMinimalInteropNoSupervisor(t devtest.T) *MinimalInteropNoSupervisor {
+func NewMinimalInteropNoSupervisor(t devtest.T, opts ...stack.CommonOption) *MinimalInteropNoSupervisor {
+	orch := NewTestOrchestrator(t, append([]stack.CommonOption{WithMinimalInteropNoSupervisor()}, opts...)...)
 	system := shim.NewSystem(t)
-	orch := Orchestrator()
 	orch.Hydrate(system)
 
 	l1Net := system.L1Network(match.FirstL1Network)

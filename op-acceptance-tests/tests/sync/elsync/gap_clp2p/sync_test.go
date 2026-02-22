@@ -4,15 +4,26 @@ import (
 	"bytes"
 	"testing"
 
+	bss "github.com/ethereum-optimism/optimism/op-batcher/batcher"
+	"github.com/ethereum-optimism/optimism/op-devstack/compat"
 	"github.com/ethereum-optimism/optimism/op-devstack/devtest"
 	"github.com/ethereum-optimism/optimism/op-devstack/presets"
+	"github.com/ethereum-optimism/optimism/op-devstack/stack"
+	"github.com/ethereum-optimism/optimism/op-devstack/sysgo"
 	"github.com/ethereum-optimism/optimism/op-service/eth"
 	"github.com/ethereum-optimism/optimism/op-supervisor/supervisor/types"
 )
 
 func TestReachUnsafeTipByAppendingUnsafePayload(gt *testing.T) {
 	t := devtest.SerialT(gt)
-	sys := presets.NewSingleChainMultiNodeWithoutCheck(t)
+	sys := presets.NewSingleChainMultiNodeWithoutCheck(t,
+		presets.WithExecutionLayerSyncOnVerifiers(),
+		presets.WithCompatibleTypes(compat.SysGo),
+		stack.MakeCommon(sysgo.WithBatcherOption(func(id stack.L2BatcherID, cfg *bss.CLIConfig) {
+			// For stopping derivation, not to advance safe heads
+			cfg.Stopped = true
+		})),
+	)
 	logger := t.Logger()
 
 	sys.L2CL.Advanced(types.LocalUnsafe, 7, 30)
@@ -47,7 +58,14 @@ func TestReachUnsafeTipByAppendingUnsafePayload(gt *testing.T) {
 // while maintaining correct Engine API semantics.
 func TestCLUnsafeNotRewoundOnInvalidDuringELSync(gt *testing.T) {
 	t := devtest.SerialT(gt)
-	sys := presets.NewSingleChainMultiNodeWithoutCheck(t)
+	sys := presets.NewSingleChainMultiNodeWithoutCheck(t,
+		presets.WithExecutionLayerSyncOnVerifiers(),
+		presets.WithCompatibleTypes(compat.SysGo),
+		stack.MakeCommon(sysgo.WithBatcherOption(func(id stack.L2BatcherID, cfg *bss.CLIConfig) {
+			// For stopping derivation, not to advance safe heads
+			cfg.Stopped = true
+		})),
+	)
 	logger := t.Logger()
 	require := t.Require()
 

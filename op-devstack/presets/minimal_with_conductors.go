@@ -29,9 +29,9 @@ func WithMinimalWithConductors() stack.CommonOption {
 	)
 }
 
-func NewMinimalWithConductors(t devtest.T) *MinimalWithConductors {
+func NewMinimalWithConductors(t devtest.T, opts ...stack.CommonOption) *MinimalWithConductors {
+	orch := NewTestOrchestrator(t, append([]stack.CommonOption{WithMinimalWithConductors()}, opts...)...)
 	system := shim.NewSystem(t)
-	orch := Orchestrator()
 	orch.Hydrate(system)
 	chains := system.L2Networks()
 	conductorSets := make(map[stack.L2NetworkID]dsl.ConductorSet)
@@ -42,7 +42,7 @@ func NewMinimalWithConductors(t devtest.T) *MinimalWithConductors {
 		conductorSets[chain.ID()] = dsl.NewConductorSet(l2.Conductors())
 	}
 	return &MinimalWithConductors{
-		Minimal:       NewMinimal(t),
+		Minimal:       minimalFromSystem(t, system, orch),
 		ConductorSets: conductorSets,
 	}
 }

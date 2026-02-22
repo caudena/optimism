@@ -2,7 +2,9 @@ package presets
 
 import (
 	gameTypes "github.com/ethereum-optimism/optimism/op-challenger/game/types"
+	"github.com/ethereum-optimism/optimism/op-devstack/devtest"
 	"github.com/ethereum-optimism/optimism/op-devstack/dsl/contract"
+	"github.com/ethereum-optimism/optimism/op-devstack/shim"
 	"github.com/ethereum-optimism/optimism/op-devstack/stack"
 	"github.com/ethereum-optimism/optimism/op-devstack/stack/match"
 	"github.com/ethereum-optimism/optimism/op-devstack/sysgo"
@@ -122,4 +124,13 @@ func WithDisputeGameFinalityDelaySeconds(seconds uint64) stack.CommonOption {
 // WithProofs enables a minimal system with permissionless proofs enabled
 func WithProofs() stack.CommonOption {
 	return stack.MakeCommon(sysgo.ProofSystem(&sysgo.DefaultMinimalSystemIDs{}))
+}
+
+// NewMinimalWithProofs creates a Minimal preset backed by the proof system (cannon games enabled).
+// Use this instead of NewMinimal when the test requires dispute game factory support.
+func NewMinimalWithProofs(t devtest.T, opts ...stack.CommonOption) *Minimal {
+	orch := NewTestOrchestrator(t, append([]stack.CommonOption{WithProofs()}, opts...)...)
+	system := shim.NewSystem(t)
+	orch.Hydrate(system)
+	return minimalFromSystem(t, system, orch)
 }

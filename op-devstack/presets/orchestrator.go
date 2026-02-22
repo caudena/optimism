@@ -23,18 +23,18 @@ import (
 	"github.com/ethereum-optimism/optimism/op-service/log/logfilter"
 )
 
-// lockedOrchestrator is the global variable that stores
-// the global orchestrator that tests may use.
-// Presets are expected to use the global orchestrator,
-// unless explicitly told otherwise using a WithOrchestrator option.
-var lockedOrchestrator locks.RWValue[stack.Orchestrator]
-
 type backendKind string
 
 const (
 	backendKindSysGo  backendKind = "sysgo"
 	backendKindSysExt backendKind = "sysext"
 )
+
+// lockedOrchestrator is the global variable that stores
+// the global orchestrator that tests may use.
+// Presets are expected to use the global orchestrator,
+// unless explicitly told otherwise using a WithOrchestrator option.
+var lockedOrchestrator locks.RWValue[stack.Orchestrator]
 
 type TestingM interface {
 	Run() int
@@ -160,6 +160,39 @@ Add a TestMain to your test package init the orchestrator:
 `)
 	}
 	return out
+}
+
+// NewTestOrchestrator creates a new orchestrator scoped to a single test.
+// The orchestrator is cleaned up when the test ends via t.Cleanup.
+// This allows tests to own their own system without a package-level TestMain.
+//
+// opts should include a topology option (e.g. WithMinimal(), WithSimpleInterop())
+// plus any additional configuration options.
+func NewTestOrchestrator(t devtest.T, opts ...stack.CommonOption) stack.Orchestrator {
+	ctx, span := t.Tracer().Start(t.Ctx(), "initializing test orchestrator")
+	defer span.End()
+
+	p := devtest.NewPFromT(t)
+
+	backend := backendKindSysGo
+	if override, ok := os.LookupEnv("DEVSTACK_ORCHESTRATOR"); ok {
+		backend = backendKind(override)
+	}
+
+	opt := stack.Combine(opts...)
+	var orch stack.Orchestrator
+	switch backend {
+	case backendKindSysGo:
+		orch = sysgo.NewOrchestrator(p, stack.SystemHook(opt))
+	case backendKindSysExt:
+		orch = sysext.NewOrchestrator(p, stack.SystemHook(opt))
+	default:
+		t.Require().Failf("unknown orchestrator backend %q; set DEVSTACK_ORCHESTRATOR to 'sysgo' or 'sysext'", string(backend))
+	}
+
+	t.Logger().InfoContext(ctx, "initialized test orchestrator", "backend", backend)
+	stack.ApplyOptionLifecycle(opt, orch)
+	return orch
 }
 
 // WithCompatibleTypes is a common option that can be used to ensure that the orchestrator is compatible with the preset.

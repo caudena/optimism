@@ -22,9 +22,9 @@ func WithSimpleWithSyncTester() stack.CommonOption {
 	return stack.MakeCommon(sysgo.DefaultSimpleSystemWithSyncTester(&sysgo.DefaultSimpleSystemWithSyncTesterIDs{}))
 }
 
-func NewSimpleWithSyncTester(t devtest.T) *SimpleWithSyncTester {
+func NewSimpleWithSyncTester(t devtest.T, opts ...stack.CommonOption) *SimpleWithSyncTester {
+	orch := NewTestOrchestrator(t, append([]stack.CommonOption{WithSimpleWithSyncTester()}, opts...)...)
 	system := shim.NewSystem(t)
-	orch := Orchestrator()
 	orch.Hydrate(system)
 	minimal := minimalFromSystem(t, system, orch)
 	l2 := system.L2Network(match.L2ChainA)

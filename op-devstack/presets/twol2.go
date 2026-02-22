@@ -46,9 +46,36 @@ func WithTwoL2SupernodeInterop(delaySeconds uint64) stack.CommonOption {
 	return stack.MakeCommon(sysgo.DefaultSupernodeInteropTwoL2System(&sysgo.DefaultTwoL2SystemIDs{}, delaySeconds))
 }
 
-func NewTwoL2(t devtest.T) *TwoL2 {
+func NewTwoL2(t devtest.T, opts ...stack.CommonOption) *TwoL2 {
+	orch := NewTestOrchestrator(t, append([]stack.CommonOption{WithTwoL2()}, opts...)...)
 	system := shim.NewSystem(t)
-	orch := Orchestrator()
+	orch.Hydrate(system)
+
+	l1Net := system.L1Network(match.FirstL1Network)
+	l2a := system.L2Network(match.Assume(t, match.L2ChainA))
+	l2b := system.L2Network(match.Assume(t, match.L2ChainB))
+	l2aCL := l2a.L2CLNode(match.Assume(t, match.WithSequencerActive(t.Ctx())))
+	l2bCL := l2b.L2CLNode(match.Assume(t, match.WithSequencerActive(t.Ctx())))
+
+	require.NotEqual(t, l2a.ChainID(), l2b.ChainID())
+
+	return &TwoL2{
+		Log:          t.Logger(),
+		T:            t,
+		ControlPlane: orch.ControlPlane(),
+		L1Network:    dsl.NewL1Network(l1Net),
+		L1EL:         dsl.NewL1ELNode(l1Net.L1ELNode(match.Assume(t, match.FirstL1EL))),
+		L2A:          dsl.NewL2Network(l2a, orch.ControlPlane()),
+		L2B:          dsl.NewL2Network(l2b, orch.ControlPlane()),
+		L2ACL:        dsl.NewL2CLNode(l2aCL, orch.ControlPlane()),
+		L2BCL:        dsl.NewL2CLNode(l2bCL, orch.ControlPlane()),
+	}
+}
+
+// NewTwoL2Supernode creates a TwoL2 preset backed by a shared supernode instance for both chains.
+func NewTwoL2Supernode(t devtest.T, opts ...stack.CommonOption) *TwoL2 {
+	orch := NewTestOrchestrator(t, append([]stack.CommonOption{WithTwoL2Supernode()}, opts...)...)
+	system := shim.NewSystem(t)
 	orch.Hydrate(system)
 
 	l1Net := system.L1Network(match.FirstL1Network)
@@ -129,9 +156,9 @@ func (s *TwoL2SupernodeInterop) SuperNodeClient() apis.SupernodeQueryAPI {
 // NewTwoL2SupernodeInterop creates a TwoL2SupernodeInterop preset for acceptance tests.
 // Use delaySeconds=0 for interop at genesis, or a positive value to test the transition.
 // The delaySeconds must match what was passed to WithTwoL2SupernodeInterop in TestMain.
-func NewTwoL2SupernodeInterop(t devtest.T, delaySeconds uint64) *TwoL2SupernodeInterop {
+func NewTwoL2SupernodeInterop(t devtest.T, delaySeconds uint64, opts ...stack.CommonOption) *TwoL2SupernodeInterop {
+	orch := NewTestOrchestrator(t, append([]stack.CommonOption{WithTwoL2SupernodeInterop(delaySeconds)}, opts...)...)
 	system := shim.NewSystem(t)
-	orch := Orchestrator()
 	orch.Hydrate(system)
 
 	l1Net := system.L1Network(match.FirstL1Network)

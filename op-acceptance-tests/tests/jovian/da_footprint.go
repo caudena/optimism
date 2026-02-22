@@ -5,7 +5,6 @@ import (
 	"crypto/rand"
 	"math/big"
 	"sync"
-	"testing"
 	"time"
 
 	"github.com/ethereum-optimism/optimism/op-acceptance-tests/tests/interop/loadtest"
@@ -117,9 +116,8 @@ func (env *daFootprintEnv) expectL1BlockDAFootprintGasScalar(t devtest.T, expect
 	t.Require().Equal(expected, current)
 }
 
-func TestDAFootprint(gt *testing.T) {
-	t := devtest.SerialT(gt)
-	sys := presets.NewMinimal(t)
+func TestDAFootprint(sys *presets.Minimal) {
+	t := sys.T
 	require := t.Require()
 
 	require.True(sys.L2Chain.IsForkActive(forks.Jovian), "Jovian fork must be active for this test")

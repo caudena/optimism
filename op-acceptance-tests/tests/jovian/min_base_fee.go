@@ -1,19 +1,16 @@
 package jovian
 
 import (
+	"encoding/binary"
 	"math/big"
-	"testing"
+	"time"
 
+	"github.com/ethereum-optimism/optimism/op-chain-ops/devkeys"
 	"github.com/ethereum-optimism/optimism/op-core/forks"
 	"github.com/ethereum-optimism/optimism/op-devstack/devtest"
 	"github.com/ethereum-optimism/optimism/op-devstack/dsl"
 	"github.com/ethereum-optimism/optimism/op-devstack/presets"
 	"github.com/ethereum-optimism/optimism/op-service/eth"
-
-	"encoding/binary"
-	"time"
-
-	"github.com/ethereum-optimism/optimism/op-chain-ops/devkeys"
 	"github.com/ethereum-optimism/optimism/op-service/txintent/bindings"
 	"github.com/ethereum-optimism/optimism/op-service/txintent/contractio"
 	"github.com/ethereum/go-ethereum/consensus/misc/eip1559"
@@ -117,9 +114,8 @@ func (mbf *minBaseFeeEnv) waitForMinBaseFeeConfigChangeOnL2(t devtest.T, expecte
 }
 
 // TestMinBaseFee verifies configurable minimum base fee using devstack presets.
-func TestMinBaseFee(gt *testing.T) {
-	t := devtest.SerialT(gt)
-	sys := presets.NewMinimal(t)
+func TestMinBaseFee(sys *presets.Minimal) {
+	t := sys.T
 	require := t.Require()
 
 	require.True(sys.L2Chain.IsForkActive(forks.Jovian), "Jovian fork must be active for this test")

@@ -3,16 +3,23 @@ package cannon
 import (
 	"testing"
 
+	"github.com/ethereum-optimism/optimism/op-devstack/compat"
 	"github.com/ethereum-optimism/optimism/op-devstack/devtest"
 	"github.com/ethereum-optimism/optimism/op-devstack/dsl/proofs"
 	"github.com/ethereum-optimism/optimism/op-devstack/presets"
+	"github.com/ethereum-optimism/optimism/op-devstack/stack"
+	"github.com/ethereum-optimism/optimism/op-devstack/sysgo"
 	"github.com/ethereum-optimism/optimism/op-service/eth"
 	"github.com/ethereum-optimism/optimism/op-supervisor/supervisor/types"
 )
 
 func TestExecuteStep_Cannon(gt *testing.T) {
 	t := devtest.ParallelT(gt)
-	sys := presets.NewMinimal(t)
+	sys := presets.NewMinimalWithProofs(t,
+		stack.MakeCommon(sysgo.WithDeployerOptions(sysgo.WithJovianAtGenesis)),
+		presets.WithSafeDBEnabled(),
+		presets.WithCompatibleTypes(compat.SysGo),
+	)
 
 	l1User := sys.FunderL1.NewFundedEOA(eth.ThousandEther)
 	blockNum := uint64(3)
@@ -29,7 +36,11 @@ func TestExecuteStep_Cannon(gt *testing.T) {
 
 func TestExecuteStep_CannonKona(gt *testing.T) {
 	t := devtest.ParallelT(gt)
-	sys := presets.NewMinimal(t)
+	sys := presets.NewMinimalWithProofs(t,
+		stack.MakeCommon(sysgo.WithDeployerOptions(sysgo.WithJovianAtGenesis)),
+		presets.WithSafeDBEnabled(),
+		presets.WithCompatibleTypes(compat.SysGo),
+	)
 
 	l1User := sys.FunderL1.NewFundedEOA(eth.ThousandEther)
 	blockNum := uint64(3)

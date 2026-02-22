@@ -14,6 +14,7 @@ import (
 // processed correctly with interop verification from the very beginning.
 // Also verifies that VerifiedAt (via superroot_atTimestamp) works correctly.
 func TestSupernodeInteropActivationAtGenesis(gt *testing.T) {
+	gt.Setenv("DEVSTACK_L2CL_KIND", "supernode")
 	t := devtest.ParallelT(gt)
 	sys := presets.NewTwoL2SupernodeInterop(t, 0)
 

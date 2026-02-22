@@ -11,6 +11,7 @@ import (
 // TestSupernodeInteropVerifiedAt tests that the VerifiedAt endpoint returns
 // correct data after the interop activity has processed timestamps.
 func TestSupernodeInteropVerifiedAt(gt *testing.T) {
+	gt.Setenv("DEVSTACK_L2CL_KIND", "supernode")
 	t := devtest.ParallelT(gt)
 	sys := presets.NewTwoL2SupernodeInterop(t, 0)
 
@@ -54,6 +55,7 @@ func TestSupernodeInteropVerifiedAt(gt *testing.T) {
 //
 // This proves the supernode waits for all chains' local safe heads before verifying.
 func TestSupernodeInteropChainLag(gt *testing.T) {
+	gt.Setenv("DEVSTACK_L2CL_KIND", "supernode")
 	t := devtest.SerialT(gt)
 	sys := presets.NewTwoL2SupernodeInterop(t, 0)
 
