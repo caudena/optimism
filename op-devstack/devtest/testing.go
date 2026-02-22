@@ -355,7 +355,7 @@ func NewPFromT(t T) P {
 	return &testP{t: t}
 }
 
-func (p *testP) Error(args ...any)                { p.t.Error(args...) }
+func (p *testP) Error(args ...any)                 { p.t.Error(args...) }
 func (p *testP) Errorf(format string, args ...any) { p.t.Errorf(format, args...) }
 func (p *testP) Fail()                             { p.t.Fail() }
 func (p *testP) FailNow()                          { p.t.FailNow() }
@@ -372,4 +372,6 @@ func (p *testP) TempDir() string                   { return p.t.TempDir() }
 func (p *testP) Cleanup(fn func())                 { p.t.Cleanup(fn) }
 func (p *testP) WithCtx(ctx context.Context) P     { return &testP{t: p.t.WithCtx(ctx)} }
 func (p *testP) Close()                            {}
-func (p *testP) _PackageOnly()                     { panic("do not use - this method only forces the interface to be unique") }
+func (p *testP) _PackageOnly() {
+	panic("do not use - this method only forces the interface to be unique")
+}
