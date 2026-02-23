@@ -5,6 +5,9 @@ use reth_optimism_cli::{Cli, chainspec::OpChainSpecParser};
 use reth_optimism_node::{OpNode, args::RollupArgs};
 use tracing::info;
 
+use crate::rpc_ext::EthBlockReceiptsTraceApiServer;
+mod rpc_ext;
+
 #[global_allocator]
 static ALLOC: reth_cli_util::allocator::Allocator = reth_cli_util::allocator::new_allocator();
 
@@ -25,8 +28,15 @@ fn main() {
     if let Err(err) =
         Cli::<OpChainSpecParser, RollupArgs>::parse().run(async move |builder, rollup_args| {
             info!(target: "reth::cli", "Launching node");
-            let handle =
-                builder.node(OpNode::new(rollup_args)).launch_with_debug_capabilities().await?;
+            let handle = builder
+                .node(OpNode::new(rollup_args))
+                .extend_rpc_modules(move |ctx| {
+                    let trace_ext = rpc_ext::EthBlockReceiptsTraceExt::new(ctx.registry.eth_api().clone());
+                    ctx.modules.merge_configured(trace_ext.into_rpc())?;
+                    Ok(())
+                })
+                .launch_with_debug_capabilities()
+                .await?;
             handle.node_exit_future.await
         })
     {

@@ -165,9 +165,9 @@ too_long_first_doc_paragraph = "allow"
 
 # ==================== PROFILES ====================
 [profile.dev]
-opt-level = 1
+opt-level = 0
 overflow-checks = false
-debug = "line-tables-only"
+debug = "full"
 split-debuginfo = "unpacked"
 
 [profile.dev.package]

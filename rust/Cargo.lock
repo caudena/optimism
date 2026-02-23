@@ -8006,7 +8006,20 @@ dependencies = [
 name = "op-reth"
 version = "1.11.0"
 dependencies = [
+ "alloy-eips",
+ "alloy-network",
+ "alloy-primitives",
+ "alloy-rpc-types",
+ "alloy-rpc-types-eth",
+ "alloy-rpc-types-trace",
+ "async-trait",
  "clap",
+ "futures",
+ "jsonrpsee",
+ "jsonrpsee-types",
+ "op-alloy-consensus",
+ "op-alloy-network",
+ "op-alloy-rpc-types",
  "reth-cli-util",
  "reth-optimism-chainspec",
  "reth-optimism-cli",
@@ -8017,6 +8030,10 @@ dependencies = [
  "reth-optimism-payload-builder",
  "reth-optimism-primitives",
  "reth-optimism-rpc",
+ "reth-rpc-eth-api",
+ "revm-inspectors",
+ "serde",
+ "tokio",
  "tracing",
 ]
 
