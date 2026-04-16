@@ -9,8 +9,7 @@ use alloy_op_hardforks::{
 };
 use alloy_primitives::{address, b256, uint};
 use kona_genesis::{
-    BASE_MAINNET_BASE_FEE_CONFIG, ChainGenesis, DEFAULT_INTEROP_MESSAGE_EXPIRY_WINDOW,
-    HardForkConfig, RollupConfig, SystemConfig,
+    BASE_MAINNET_BASE_FEE_CONFIG, ChainGenesis, HardForkConfig, RollupConfig, SystemConfig,
 };
 
 /// The [`RollupConfig`] for Base Mainnet.
@@ -58,6 +57,7 @@ pub const BASE_MAINNET_CONFIG: RollupConfig = RollupConfig {
         pectra_blob_schedule_time: None,
         isthmus_time: Some(BASE_MAINNET_ISTHMUS_TIMESTAMP),
         jovian_time: Some(BASE_MAINNET_JOVIAN_TIMESTAMP),
+        karst_time: None,
         interop_time: None,
     },
     batch_inbox_address: address!("ff00000000000000000000000000000000008453"),
@@ -67,7 +67,6 @@ pub const BASE_MAINNET_CONFIG: RollupConfig = RollupConfig {
     superchain_config_address: Some(address!("95703e0982140D16f8ebA6d158FccEde42f04a4C")),
     da_challenge_address: None,
     blobs_enabled_l1_timestamp: None,
-    interop_message_expiry_window: DEFAULT_INTEROP_MESSAGE_EXPIRY_WINDOW,
     alt_da_config: None,
     chain_op_config: BASE_MAINNET_BASE_FEE_CONFIG,
 };

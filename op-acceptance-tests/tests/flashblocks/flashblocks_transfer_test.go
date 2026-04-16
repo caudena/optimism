@@ -31,7 +31,7 @@ type timedMessage struct {
 // - That Flashblock's time (in seconds) must be less than or equal to the Transaction's block time (in seconds). (Can't check the block time beyond the granularity of seconds)
 // - That Flashblock's time in nanoseconds must be before the approximated transaction confirmation time recorded previously.
 func TestFlashblocksTransfer(gt *testing.T) {
-	t := devtest.SerialT(gt)
+	t := devtest.ParallelT(gt)
 	logger := t.Logger()
 	tracer := t.Tracer()
 	ctx := t.Ctx()
@@ -46,7 +46,7 @@ func TestFlashblocksTransfer(gt *testing.T) {
 	defer span.End()
 
 	// Drive a couple blocks on the test sequencer so the faucet L2 funding tx has a chance to land before we rely on it.
-	driveViaTestSequencer(t, sys, 2)
+	DriveViaTestSequencer(t, sys, 2)
 
 	alice := sys.FunderL2.NewFundedEOA(eth.ThreeHundredthsEther)
 	bob := sys.Wallet.NewEOA(sys.L2EL)

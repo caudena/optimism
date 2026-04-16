@@ -5,14 +5,13 @@ import (
 	"testing"
 
 	"github.com/ethereum-optimism/optimism/op-devstack/devtest"
-	"github.com/ethereum-optimism/optimism/op-devstack/presets"
 	"github.com/ethereum-optimism/optimism/op-service/eth"
 	"github.com/ethereum-optimism/optimism/op-supervisor/supervisor/types"
 )
 
 func TestReachUnsafeTipByAppendingUnsafePayload(gt *testing.T) {
-	t := devtest.SerialT(gt)
-	sys := presets.NewSingleChainMultiNodeWithoutCheck(t)
+	t := devtest.ParallelT(gt)
+	sys := newGapCLP2PSystem(t)
 	logger := t.Logger()
 
 	sys.L2CL.Advanced(types.LocalUnsafe, 7, 30)
@@ -46,8 +45,8 @@ func TestReachUnsafeTipByAppendingUnsafePayload(gt *testing.T) {
 // not cause the CL's unsafe head to regress, preserving the last known valid head
 // while maintaining correct Engine API semantics.
 func TestCLUnsafeNotRewoundOnInvalidDuringELSync(gt *testing.T) {
-	t := devtest.SerialT(gt)
-	sys := presets.NewSingleChainMultiNodeWithoutCheck(t)
+	t := devtest.ParallelT(gt)
+	sys := newGapCLP2PSystem(t)
 	logger := t.Logger()
 	require := t.Require()
 

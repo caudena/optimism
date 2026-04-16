@@ -46,6 +46,7 @@ interface IOPContractsManagerUtils {
 
     error OPContractsManagerUtils_DowngradeNotAllowed(address _contract);
     error OPContractsManagerUtils_ExtraTagInProd(address _contract);
+    error OPContractsManagerUtils_InitializingDuringUpgrade();
     error OPContractsManagerUtils_ConfigLoadFailed(string _name);
     error OPContractsManagerUtils_ProxyMustLoad(string _name);
     error OPContractsManagerUtils_UnsupportedGameType();
@@ -58,7 +59,6 @@ interface IOPContractsManagerUtils {
     error EmptyInitcode();
     error BytesArrayTooLong();
     error IdentityPrecompileCallFailed();
-
     function implementations() external view returns (IOPContractsManagerContainer.Implementations memory);
     function blueprints() external view returns (IOPContractsManagerContainer.Blueprints memory);
     function contractsContainer() external view returns (IOPContractsManagerContainer);

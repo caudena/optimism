@@ -1,10 +1,11 @@
 //! Contains the [`IndexedTraversal`] stage of the derivation pipeline.
 
 use crate::{
-    ActivationSignal, ChainProvider, L1RetrievalProvider, OriginAdvancer, OriginProvider,
-    PipelineError, PipelineResult, ResetError, ResetSignal, Signal, SignalReceiver,
+    ChainProvider, L1RetrievalProvider, OriginAdvancer, OriginProvider, PipelineError,
+    PipelineResult, ResetError, Stage,
 };
 use alloc::{boxed::Box, sync::Arc};
+use alloy_eips::BlockNumHash;
 use alloy_primitives::Address;
 use async_trait::async_trait;
 use kona_genesis::{RollupConfig, SystemConfig};
@@ -90,25 +91,13 @@ impl<F: ChainProvider> IndexedTraversal<F> {
         let receipts =
             self.data_source.receipts_by_hash(block_info.hash).await.map_err(Into::into)?;
 
-        let addr = self.rollup_config.l1_system_config_address;
-        let active = self.rollup_config.is_ecotone_active(block_info.timestamp);
-        match self.system_config.update_with_receipts(&receipts[..], addr, active) {
-            Ok(true) => {
-                let next = block_info.number as f64;
-                kona_macros::set!(gauge, crate::Metrics::PIPELINE_LATEST_SYS_CONFIG_UPDATE, next);
-                info!(target: "traversal", "System config updated at block {next}.");
-            }
-            Ok(false) => { /* Ignore, no update applied */ }
-            Err(err) => {
-                error!(target: "traversal", ?err, "Failed to update system config at block {}", block_info.number);
-                kona_macros::set!(
-                    gauge,
-                    crate::Metrics::PIPELINE_SYS_CONFIG_UPDATE_ERROR,
-                    block_info.number as f64
-                );
-                return Err(PipelineError::SystemConfigUpdate(err).crit());
-            }
-        }
+        super::update_system_config_with_receipts(
+            &mut self.system_config,
+            &receipts,
+            self.rollup_config.l1_system_config_address,
+            self.rollup_config.is_ecotone_active(block_info.timestamp),
+            block_info.number,
+        );
 
         // Update the origin block.
         self.update_origin(block_info);
@@ -135,19 +124,29 @@ impl<F: ChainProvider> OriginProvider for IndexedTraversal<F> {
 }
 
 #[async_trait]
-impl<F: ChainProvider + Send> SignalReceiver for IndexedTraversal<F> {
-    async fn signal(&mut self, signal: Signal) -> PipelineResult<()> {
-        match signal {
-            Signal::Reset(ResetSignal { l1_origin, system_config, .. }) |
-            Signal::Activation(ActivationSignal { l1_origin, system_config, .. }) => {
-                self.update_origin(l1_origin);
-                self.system_config = system_config.expect("System config must be provided.");
-            }
-            Signal::ProvideBlock(block_info) => self.provide_next_block(block_info).await?,
-            _ => {}
-        }
-
+impl<F: ChainProvider + Send> Stage for IndexedTraversal<F> {
+    async fn reset(
+        &mut self,
+        l1_origin: BlockNumHash,
+        system_config: SystemConfig,
+    ) -> PipelineResult<()> {
+        let block_info =
+            self.data_source.block_info_by_number(l1_origin.number).await.map_err(Into::into)?;
+        self.update_origin(block_info);
+        self.system_config = system_config;
         Ok(())
+    }
+
+    async fn activate(&mut self) -> PipelineResult<()> {
+        Ok(())
+    }
+
+    async fn flush_channel(&mut self) -> PipelineResult<()> {
+        Ok(())
+    }
+
+    async fn provide_block(&mut self, block: BlockInfo) -> PipelineResult<()> {
+        self.provide_next_block(block).await
     }
 }
 
@@ -226,20 +225,10 @@ mod tests {
         let blocks = vec![BlockInfo::default(), BlockInfo::default()];
         let receipts = new_receipts();
         let mut traversal = new_test_managed(blocks, receipts);
-        let cfg = SystemConfig::default();
         traversal.done = true;
-        assert!(
-            traversal
-                .signal(Signal::Activation(ActivationSignal {
-                    system_config: Some(cfg),
-                    ..Default::default()
-                }))
-                .await
-                .is_ok()
-        );
+        assert!(traversal.activate().await.is_ok());
         assert_eq!(traversal.origin(), Some(BlockInfo::default()));
-        assert_eq!(traversal.system_config, cfg);
-        assert!(!traversal.done);
+        assert!(traversal.done);
     }
 
     #[tokio::test]
@@ -249,15 +238,7 @@ mod tests {
         let mut traversal = new_test_managed(blocks, receipts);
         let cfg = SystemConfig::default();
         traversal.done = true;
-        assert!(
-            traversal
-                .signal(Signal::Reset(ResetSignal {
-                    system_config: Some(cfg),
-                    ..Default::default()
-                }))
-                .await
-                .is_ok()
-        );
+        assert!(traversal.reset(BlockNumHash::default(), cfg).await.is_ok());
         assert_eq!(traversal.origin(), Some(BlockInfo::default()));
         assert_eq!(traversal.system_config, cfg);
         assert!(!traversal.done);
@@ -315,15 +296,19 @@ mod tests {
         let first = b256!("3333333333333333333333333333333333333333333333333333333333333333");
         let second = b256!("4444444444444444444444444444444444444444444444444444444444444444");
         let block1 = BlockInfo { hash: first, ..BlockInfo::default() };
-        let block2 = BlockInfo { number: 1, hash: second, ..BlockInfo::default() };
+        let block2 =
+            BlockInfo { number: 1, hash: second, parent_hash: first, ..BlockInfo::default() };
         let blocks = vec![block1, block2];
         let receipts = new_receipts();
         let mut traversal = new_test_managed(blocks, receipts);
         traversal.block = Some(block1);
         assert_eq!(traversal.next_l1_block().await.unwrap(), Some(block1));
-        // provide_next_block will fail due to system config update error
-        let err = traversal.provide_next_block(block2).await.unwrap_err();
-        matches!(err, PipelineErrorKind::Critical(PipelineError::SystemConfigUpdate(_)));
+        // A system config update error is now non-fatal (matches op-node behaviour):
+        // provide_next_block returns Ok(()) and origin advances to block2.
+        assert!(
+            traversal.provide_next_block(block2).await.is_ok(),
+            "system config update failure should be non-fatal (warn + continue)"
+        );
     }
 
     #[tokio::test]
