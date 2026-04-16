@@ -18,6 +18,8 @@ use std::{sync::Arc, time::Duration};
 use tokio::time::sleep;
 use tracing::info;
 
+use crate::rpc_ext::{EthBlockReceiptsTraceApiServer, EthBlockReceiptsTraceExt};
+
 /// - no proofs history (plain node),
 /// - in-mem proofs storage,
 /// - MDBX proofs storage.
@@ -34,7 +36,11 @@ pub async fn launch_node_with_proof_history(
     } = args;
 
     // Start from a plain OpNode builder
-    let mut node_builder = builder.node(OpNode::new(args.clone()));
+    let mut node_builder = builder.node(OpNode::new(args.clone())).extend_rpc_modules(move |ctx| {
+        let trace_ext = EthBlockReceiptsTraceExt::new(ctx.registry.eth_api().clone());
+        ctx.modules.merge_configured(trace_ext.into_rpc())?;
+        Ok(())
+    });
 
     if proofs_history {
         let path = args

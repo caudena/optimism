@@ -33,6 +33,8 @@ pub use version::OP_NAME_CLIENT;
 
 pub use reth_optimism_txpool as txpool;
 
+/// Custom RPC extension for enriched block data with receipts and traces.
+pub(crate) mod rpc_ext;
 pub mod proof_history;
 
 /// Helpers for running test node instances.

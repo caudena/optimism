@@ -5,9 +5,6 @@ use reth_optimism_cli::{Cli, chainspec::OpChainSpecParser};
 use reth_optimism_node::{args::RollupArgs, proof_history};
 use tracing::info;
 
-use crate::rpc_ext::EthBlockReceiptsTraceApiServer;
-mod rpc_ext;
-
 #[global_allocator]
 static ALLOC: reth_cli_util::allocator::Allocator = reth_cli_util::allocator::new_allocator();
 
